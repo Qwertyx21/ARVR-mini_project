@@ -144,27 +144,33 @@ public class UIManager : MonoBehaviour
 
         // 2. Controls hint (bottom-left)
         Label("Hint", root,
-              "WASD walk | Right-Click hold+release: VR Teleport | Shift sprint | E kiosk | Tab cursor | O signage | G assist | F2 HUD | F3 Analytics",
-              19, TextAlignmentOptions.BottomLeft, BL, new Vector2(20, 12), new Vector2(1280, 34));
+              "WASD walk | Right-Click: VR Teleport | Shift sprint | E kiosk | Tab cursor | [1-4] Gate & Carousel | [X] Arrivals Exit | [7-8] Gates B | [9-0, L] Stores & Lounge | F3 Analytics",
+              16, TextAlignmentOptions.BottomLeft, BL, new Vector2(20, 12), new Vector2(1480, 32));
 
         // 3. Control & Scenario Button Column (top-right)
-        var col = Panel("ButtonPanel", root, dark, TR, new Vector2(-20, -20), new Vector2(360, 775));
+        var col = Panel("ButtonPanel", root, dark, TR, new Vector2(-15, -10), new Vector2(360, 945));
 
         // Participant ID selector row at top of ButtonPanel
-        Btn(col, "<", TL, new Vector2(18, -14), new Vector2(60, 44), () => exp.StepParticipant(-1));
-        pidLabel = Label("PidLabel", col, "ID: P01", 23, TextAlignmentOptions.Center, TL, new Vector2(84, -14), new Vector2(190, 44));
+        Btn(col, "<", TL, new Vector2(16, -10), new Vector2(56, 38), () => exp.StepParticipant(-1));
+        pidLabel = Label("PidLabel", col, "ID: P01", 21, TextAlignmentOptions.Center, TL, new Vector2(76, -10), new Vector2(208, 38));
         pidLabel.fontStyle = FontStyles.Bold;
         pidLabel.color = new Color(0.4f, 1f, 0.6f);
-        Btn(col, ">", TL, new Vector2(282, -14), new Vector2(60, 44), () => exp.StepParticipant(1));
+        Btn(col, ">", TL, new Vector2(288, -10), new Vector2(56, 38), () => exp.StepParticipant(1));
 
         string[] names =
         {
             "1  Check-In Desk",
             "2  Security Checkpoint",
-            "3  Gate A1 (Departure)",
-            "4  Baggage Claim",
+            "3  Gate A1 (Runway View)",
+            "4  Baggage Claim (Moving)",
+            "X  Arrivals Exit (Taxis)",
             "5  Arrival Journey",
-            "6  Full Journey (1->2->3)",
+            "6  Full Departure Journey",
+            "7  Gate B1 (Dubai EK 501)",
+            "8  Gate B2 (Goa 6E 244)",
+            "9  Duty Free Galleria",
+            "0  Food Court & Cafe",
+            "L  VIP SkyClub Lounge",
             "O  Signage (Clear/Obstr/Clut)",
             "G  Guidance Assist ON/OFF",
             "T  VR Teleport Locomotion",
@@ -178,8 +184,14 @@ public class UIManager : MonoBehaviour
             () => exp.StartTrial(Dest.Security, false),
             () => exp.StartTrial(Dest.GateA1, false),
             () => exp.StartTrial(Dest.Baggage, false),
+            () => exp.StartTrial(Dest.Exit, true),
             () => exp.StartTrial(Dest.Baggage, true),
             () => exp.StartFullJourney(),
+            () => exp.StartTrial(Dest.GateB1, false),
+            () => exp.StartTrial(Dest.GateB2, false),
+            () => exp.StartTrial(Dest.DutyFree, false),
+            () => exp.StartTrial(Dest.FoodCourt, false),
+            () => exp.StartTrial(Dest.VIPLounge, false),
             () => exp.ToggleObstructed(),
             () => exp.ToggleAssist(),
             () => exp.ToggleTeleportMode(),
@@ -188,7 +200,7 @@ public class UIManager : MonoBehaviour
             () => exp.ResetAll()
         };
         for (int i = 0; i < names.Length; i++)
-            Btn(col, names[i], TL, new Vector2(18, -68 - i * 58), new Vector2(324, 50), acts[i], 21);
+            Btn(col, names[i], TL, new Vector2(16, -56 - i * 48), new Vector2(328, 42), acts[i], 18);
 
         // 4. Instruction bar + rotating direction arrow (bottom-centre)
         var ip = Panel("InstructionPanel", root, dark, BC, new Vector2(0, 52), new Vector2(1180, 78));
@@ -358,7 +370,7 @@ public class UIManager : MonoBehaviour
         {
             instrText.text = exp.Running
                 ? nav.Instruction
-                : "Select scenario: [1-4] Single Stage | [5] Arrival Baggage | [6] Full Departure Journey | [O] Signage | [F3] Analytics";
+                : "Select destination: [1-4] South Gates | [5] Arrival | [6] Full Journey | [7-8] Gates B1-B2 | [9-0] Retail & Dining | [L] VIP Lounge";
         }
 
         bool showArrow = exp.Running && nav.AssistOn;

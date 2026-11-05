@@ -387,7 +387,13 @@ public class ExperimentManager : MonoBehaviour
         if (AirportInput.GetKeyDown(KeyCode.Alpha3)) StartTrial(Dest.GateA1, false);
         if (AirportInput.GetKeyDown(KeyCode.Alpha4)) StartTrial(Dest.Baggage, false);
         if (AirportInput.GetKeyDown(KeyCode.Alpha5)) StartTrial(Dest.Baggage, true);
+        if (AirportInput.GetKeyDown(KeyCode.X)) StartTrial(Dest.Exit, true);
         if (AirportInput.GetKeyDown(KeyCode.Alpha6)) StartFullJourney();
+        if (AirportInput.GetKeyDown(KeyCode.Alpha7)) StartTrial(Dest.GateB1, false);
+        if (AirportInput.GetKeyDown(KeyCode.Alpha8)) StartTrial(Dest.GateB2, false);
+        if (AirportInput.GetKeyDown(KeyCode.Alpha9)) StartTrial(Dest.DutyFree, false);
+        if (AirportInput.GetKeyDown(KeyCode.Alpha0)) StartTrial(Dest.FoodCourt, false);
+        if (AirportInput.GetKeyDown(KeyCode.L)) StartTrial(Dest.VIPLounge, false);
         if (AirportInput.GetKeyDown(KeyCode.O)) ToggleObstructed();
         if (AirportInput.GetKeyDown(KeyCode.G)) ToggleAssist();
         if (AirportInput.GetKeyDown(KeyCode.T)) ToggleTeleportMode();

@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 public static class DemoLauncher
 {
     const string ScenePath = "Assets/Scenes/AIrport navigation.unity";
-    const string SessionKey = "AirportDemo_AutoPlayed_v3";
+    const string SessionKey = "AirportDemo_AutoPlayed_v6";
 
     static DemoLauncher()
     {
@@ -19,9 +19,6 @@ public static class DemoLauncher
     static void WaitAndLaunch()
     {
         if (EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-        EditorApplication.update -= WaitAndLaunch;
-
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
 
         // Ensure URP pipeline asset is assigned so materials render properly
         var urpAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/PC_RPAsset.asset");
@@ -33,9 +30,20 @@ public static class DemoLauncher
 
         if (!SessionState.GetBool(SessionKey, false))
         {
+            if (EditorApplication.isPlaying)
+            {
+                EditorApplication.isPlaying = false;
+                return;
+            }
+            if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+
+            EditorApplication.update -= WaitAndLaunch;
             SessionState.SetBool(SessionKey, true);
             OpenAndPlay();
+            return;
         }
+
+        EditorApplication.update -= WaitAndLaunch;
     }
 
     [MenuItem("Airport Demo/Open Scene & Play Demo %#p")]

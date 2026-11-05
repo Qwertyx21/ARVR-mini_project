@@ -13,34 +13,61 @@ public class NavigationManager : MonoBehaviour
 
     static readonly Vector2[] NodePos =
     {
-        new Vector2(0, 3),      // 0 Entrance
-        new Vector2(0, 15.5f),  // 1 Check-in desks
-        new Vector2(0, 21),     // 2 Security queue entrance
-        new Vector2(0, 27),     // 3 Security screening arch
-        new Vector2(0, 35),     // 4 Concourse
-        new Vector2(0, 43),     // 5 Main concourse junction
-        new Vector2(12, 43),    // 6 East corridor
-        new Vector2(27, 47.5f), // 7 Gate A1 boarding area
-        new Vector2(-14, 43),   // 8 West corridor
-        new Vector2(-33, 43),   // 9 Baggage hall entrance
-        new Vector2(-35, 50),   // 10 Carousel 3 (AI 305)
-        new Vector2(0, 56)      // 11 Arrival gate
+        new Vector2(0, 3),         // 0 Entrance
+        new Vector2(0, 15.5f),     // 1 Check-in desks
+        new Vector2(0, 21),        // 2 Security queue entrance
+        new Vector2(0, 27),        // 3 Security screening arch
+        new Vector2(0, 35),        // 4 Concourse
+        new Vector2(0, 43),        // 5 Main concourse junction
+        new Vector2(12, 43),       // 6 East corridor
+        new Vector2(27, 47.5f),    // 7 Gate A1 boarding area (Runway View)
+        new Vector2(-14, 43),      // 8 West corridor
+        new Vector2(-33, 43),      // 9 Baggage hall entrance
+        new Vector2(-35, 50),      // 10 Carousel 3 (AI 305)
+        new Vector2(0, 56),        // 11 Arrival gate / South-North transition
+        new Vector2(0, 65),        // 12 North Plaza entrance
+        new Vector2(0, 75),        // 13 Central Departure Plaza
+        new Vector2(-14, 75),      // 14 West Galleria Promenade
+        new Vector2(-24, 75),      // 15 Duty Free Luxury Boutiques
+        new Vector2(14, 75),       // 16 East Food Court Promenade
+        new Vector2(22, 75),       // 17 Skyline Cafe & Dining Area
+        new Vector2(0, 88),        // 18 Restrooms & Amenities Hub
+        new Vector2(-14, 94),      // 19 Concourse B Corridor
+        new Vector2(-24, 102),     // 20 Gate B1 (EK 501 Dubai)
+        new Vector2(-8, 102),      // 21 Gate B2 (6E 244 Goa)
+        new Vector2(18, 98),       // 22 SkyClub VIP Executive Lounge
+        new Vector2(-34, 46.8f),   // 23 Baggage Claim Open Aisle
+        new Vector2(-48, 46.8f),   // 24 Baggage Exit Archway
+        new Vector2(-58, 46.8f)    // 25 Arrivals Exit & Ground Transport
     };
+
     static readonly string[] NodeName =
     {
         "Entrance", "Check-in desks", "Security queue", "Security screening", "Concourse",
-        "Main junction", "East corridor", "Gate A1", "West corridor", "Baggage hall", "Carousel 3", "Arrival gate"
+        "Main junction", "East corridor", "Gate A1 (Runway View)", "West corridor", "Baggage hall", "Carousel 3",
+        "Arrival portal", "North Plaza entrance", "Central Plaza", "Duty Free promenade",
+        "Duty Free Boutiques", "Food Court promenade", "Skyline Cafe & Dining", "Restrooms & Amenities Hub",
+        "Concourse B corridor", "Gate B1 (Dubai)", "Gate B2 (Goa)", "SkyClub VIP Lounge",
+        "Baggage Claim Aisle", "Exit Archway", "Arrivals Exit & Ground Transport"
     };
+
     static readonly int[][] Edges =
     {
         new[]{0,1}, new[]{1,2}, new[]{2,3}, new[]{3,4}, new[]{4,5}, new[]{5,6},
-        new[]{6,7}, new[]{5,8}, new[]{8,9}, new[]{9,10}, new[]{5,11}
+        new[]{6,7}, new[]{5,8}, new[]{8,9}, new[]{9,23}, new[]{23,10}, new[]{5,11},
+        new[]{23,24}, new[]{10,24}, new[]{24,25},
+        new[]{11,12}, new[]{12,13},
+        new[]{13,14}, new[]{14,15},
+        new[]{13,16}, new[]{16,17},
+        new[]{13,18},
+        new[]{18,19}, new[]{19,20}, new[]{19,21},
+        new[]{18,22}
     };
 
     List<int>[] adj;
     readonly List<Transform> crumbs = new List<Transform>();
     GameObject beacon;
-    const int MaxCrumbs = 80;
+    const int MaxCrumbs = 160;
 
     public void Init(Transform playerT, Camera camera)
     {
@@ -65,7 +92,7 @@ public class NavigationManager : MonoBehaviour
         beacon.name = "DestinationBeacon";
         Destroy(beacon.GetComponent<Collider>());
         beacon.transform.SetParent(root, false);
-        beacon.transform.localScale = new Vector3(.5f, 4f, .5f);
+        beacon.transform.localScale = new Vector3(.45f, 1.8f, .45f);
         beacon.GetComponent<Renderer>().material.color = Color.yellow;
         beacon.SetActive(false);
     }
@@ -76,7 +103,7 @@ public class NavigationManager : MonoBehaviour
         if (d != Dest.None && beacon != null)
         {
             var p = NodePos[DestNode(d)];
-            beacon.transform.position = new Vector3(p.x, 4f, p.y);
+            beacon.transform.position = new Vector3(p.x, 1.8f, p.y);
         }
     }
 
@@ -87,6 +114,14 @@ public class NavigationManager : MonoBehaviour
             case Dest.CheckIn: return 1;
             case Dest.Security: return 3;
             case Dest.GateA1: return 7;
+            case Dest.Baggage: return 10;
+            case Dest.Exit: return 25;
+            case Dest.GateB1: return 20;
+            case Dest.GateB2: return 21;
+            case Dest.DutyFree: return 15;
+            case Dest.FoodCourt: return 17;
+            case Dest.VIPLounge: return 22;
+            case Dest.Restrooms: return 18;
             default: return 10;
         }
     }
@@ -133,7 +168,7 @@ public class NavigationManager : MonoBehaviour
         if (Current == Dest.None)
         {
             HideGuidance();
-            Instruction = "Select a destination: keys 1-6 (or press Tab and click a button)";
+            Instruction = "Select destination from buttons or keys 1-9, 0, X, L";
             return;
         }
 
@@ -163,7 +198,7 @@ public class NavigationManager : MonoBehaviour
         string turn = Mathf.Abs(a) < 20f ? "Go straight" : Mathf.Abs(a) > 150f ? "Turn around" : (a > 0f ? "Turn right" : "Turn left");
         Instruction = AssistOn
             ? turn + "   |   next: " + NodeName[idx[0]] + "   |   " + dist.ToString("0") + " m to destination"
-            : "Guidance OFF - read overhead signage, FIDS boards & Info Kiosks (E) to navigate";
+            : "Guidance OFF - follow signage, FIDS & kiosk maps";
 
         if (!AssistOn) { HideGuidance(); return; }
 
